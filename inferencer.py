@@ -47,9 +47,11 @@ def im_test(im):
     face_info = lib.align(im[:, :, (2,1,0)], front_face_detector, lmark_predictor)
     # Samples
     if len(face_info) == 0:
+        print("NOOO")
         logging.warning('No faces are detected.')
         prob = -1  # we ignore this case
     else:
+        print("SIIII")
         # Check how many faces in an image
         logging.info('{} faces are detected.'.format(len(face_info)))
         max_prob = -1
@@ -73,15 +75,18 @@ def run(input_dir):
                         level=logging.INFO)
     
     prob_list = []
-    prob = 0
+    i = 0
     for f_name in input_dir:
+        print("{}/{}".format(i+1,len(input_dir)))
+        i = i+1
         # Parse video
         f_path = os.path.join(f_name)
         #print('Testing: ' + f_path)
         logging.info('Testing: ' + f_path)
         suffix = f_path.split('.')[-1]
+        prob = []
         if suffix.lower() in ['jpg', 'png', 'jpeg', 'bmp', 'tif', 'nef', 'raf']:
-            print("Running prediction on : ",f_path)
+            #print("Running prediction on : ",f_path)
             im = cv2.imread(f_path)
             if im is None:
                 prob = -1
@@ -92,7 +97,7 @@ def run(input_dir):
         prob_list.append(prob)
         print('Prob: ' + str(prob))
 
-    sess.close()
+    #
     return prob_list
 
 
@@ -117,9 +122,13 @@ if __name__ == '__main__':
   print('Fake evaluation instances: ', len(eva_fake))
   
   RESULTS_REAL = run(eva_real)
-  RESULTS_FAKE = run(eva_fake)
   
+  print("INFERENCING REAL PREDICTIONS.. \n")
   df = pd.DataFrame({'y_pred': RESULTS_REAL})
   df.to_csv('real.csv', index=False)
+  print("INFERENCING FAKE PREDICTIONS.. \n")
+  RESULTS_FAKE = run(eva_fake)
   df = pd.DataFrame({'y_pred': RESULTS_FAKE})
   df.to_csv('fake.csv', index=False)
+
+  sess.close()
