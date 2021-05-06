@@ -1,3 +1,4 @@
+
 """
 Exposing DeepFake Videos By Detecting Face Warping Artifacts
 Yuezun Li, Siwei Lyu
@@ -13,9 +14,8 @@ import numpy as np
 from py_utils.face_utils import lib
 from py_utils.vid_utils import proc_vid as pv
 import logging
-import csv
-import pandas as pd
-import matplotlib.pyplot as plt
+
+
 
 print('***********')
 print('Detecting DeepFake images, prob == -1 denotes opt out')
@@ -27,9 +27,9 @@ with open(cfg_file, 'r') as f:
 sample_num = 10
 
 # Employ dlib to extract face area and landmark points
-
+pwd = os.path.dirname(__file__)
 front_face_detector = dlib.get_frontal_face_detector()
-lmark_predictor = dlib.shape_predictor("/content/drive/MyDrive/Colab Notebooks/Deep Fake - PDBR/CVPRW2019_Face_Artifacts/dlib_model/shape_predictor_68_face_landmarks.dat")
+lmark_predictor = dlib.shape_predictor(pwd + '/dlib_model/shape_predictor_68_face_landmarks.dat')
 
 tfconfig = tf.ConfigProto(allow_soft_placement=True)
 tfconfig.gpu_options.allow_growth=True
@@ -71,22 +71,38 @@ def im_test(im):
 def run(input_dir):
     logging.basicConfig(filename='run.log', filemode='w', format='[%(asctime)s - %(levelname)s] %(message)s',
                         level=logging.INFO)
-    
+
+    f_list = os.listdir(input_dir)
     prob_list = []
-    prob = 0
-    for f_name in input_dir:
+    for f_name in f_list:
         # Parse video
-        f_path = os.path.join(f_name)
-        #print('Testing: ' + f_path)
+        f_path = os.path.join(input_dir, f_name)
+        print('Testing: ' + f_path)
         logging.info('Testing: ' + f_path)
         suffix = f_path.split('.')[-1]
         if suffix.lower() in ['jpg', 'png', 'jpeg', 'bmp', 'tif', 'nef', 'raf']:
-            print("Running prediction on : ",f_path)
             im = cv2.imread(f_path)
             if im is None:
                 prob = -1
             else:
                 prob = im_test(im)
+
+        elif suffix.lower() in ['mp4', 'avi', 'mov']:
+            # Parse video
+            imgs, frame_num, fps, width, height = pv.parse_vid(f_path)
+            probs = []
+            for fid, im in enumerate(imgs):
+                logging.info('Frame ' + str(fid))
+                prob = im_test(im)
+                if prob == -1:
+                    continue
+                probs.append(prob)
+
+            # Remove opt out frames
+            if probs is []:
+                prob = -1
+            else:
+                prob = np.mean(sorted(prob                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              s, reverse=True)[:int(frame_num / 3)])
 
         logging.info('Prob = ' + str(prob))
         prob_list.append(prob)
@@ -97,30 +113,9 @@ def run(input_dir):
 
 
 if __name__ == '__main__':
-  root_dir = "/content/drive/MyDrive/Colab Notebooks/Deep Fake - PDBR/CVPRW2019_Face_Artifacts/testdata/Task_2_3/"
-  sub_folding = ["evaluation"]
-  categories = ['real', "fake"]
-
-  eva_real = []
-  eva_fake = []
-
-
-  for root, dirs, files in os.walk(root_dir, topdown=True):
-    for name in files:
-      path = os.path.join(root, name)
-      if '.jpg' in path and 'evaluation' in path and 'real' in path:
-        eva_real.append(path)
-      elif '.jpg' in path and 'evaluation' in path and 'fake' in path:
-        eva_fake.append(path)
-
-  print('Real evaluation instances: ', len(eva_real))
-  print('Fake evaluation instances: ', len(eva_fake))
-  RESULTS_REAL = run(eva_real)
-  RESULTS_FAKE = run(eva_fake)
-  
-  df = pd.DataFrame({'y_pred': RESULTS_REAL})
-  df.to_csv('real.csv', index=False)
-  df = pd.DataFrame({'y_pred': RESULTS_FAKE})
-  df.to_csv('fake.csv', index=False)
-
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_dir', type=str, default='demo')
+    args = parser.parse_args()
+    run(args.input_dir)
     
