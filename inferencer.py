@@ -29,7 +29,7 @@ sample_num = 10
 # Employ dlib to extract face area and landmark points
 
 front_face_detector = dlib.get_frontal_face_detector()
-lmark_predictor = dlib.shape_predictor("/content/drive/MyDrive/Colab Notebooks/Deep Fake - PDBR/CVPRW2019_Face_Artifacts/dlib_model/shape_predictor_68_face_landmarks.dat")
+lmark_predictor = dlib.shape_predictor("/content/DeepFake_ArtifactWarper/dlib_model/shape_predictor_68_face_landmarks.dat")
 
 tfconfig = tf.ConfigProto(allow_soft_placement=True)
 tfconfig.gpu_options.allow_growth=True
@@ -97,7 +97,7 @@ def run(input_dir):
 
 
 if __name__ == '__main__':
-  root_dir = "/content/drive/MyDrive/Colab Notebooks/Deep Fake - PDBR/CVPRW2019_Face_Artifacts/testdata/Task_2_3/"
+  root_dir = "/content/DeepFake_ArtifactWarper/testdata/Task_2_3/"
   sub_folding = ["evaluation"]
   categories = ['real', "fake"]
 
@@ -115,6 +115,7 @@ if __name__ == '__main__':
 
   print('Real evaluation instances: ', len(eva_real))
   print('Fake evaluation instances: ', len(eva_fake))
+  
   RESULTS_REAL = run(eva_real)
   RESULTS_FAKE = run(eva_fake)
   
@@ -122,5 +123,3 @@ if __name__ == '__main__':
   df.to_csv('real.csv', index=False)
   df = pd.DataFrame({'y_pred': RESULTS_FAKE})
   df.to_csv('fake.csv', index=False)
-
-    
